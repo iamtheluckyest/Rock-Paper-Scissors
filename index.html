@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Rock, Paper, Scissors</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="style.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
+
+</head>
+<body>
+	<h1>Rock, Paper, Scissors</h1>
+	<div class="row">
+		<div class="holder" id="holder-rock">
+			<div class="card active" id="rock">
+				<img src="images/rock.png" alt="rock">
+				<h2>Rock</h2>
+			</div>
+		</div>
+		<div class="holder" id="holder-paper">
+			<div class="card active" id="paper">
+				<img src="images/paper.png" alt="paper">
+				<h2>Paper</h2>
+			</div>
+		</div>
+		<div class="holder" id="holder-scissors">
+			<div class="card active" id="scissors">
+				<img src="images/scissors.png" alt="scissors">
+				<h2>Scissors</h2>
+			</div>
+		</div>
+	</div>
+	<h2 id="instructions">Choose a card.</h2>
+	<div id="chatbox"></div>
+
+	<script src="javascript.js"> </script>
+</body>
+</html>
