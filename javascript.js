@@ -128,14 +128,18 @@ $(".card").on("click", function(){
 			console.log("Your choice is " + choice);
 			console.log("oppChoice is " + oppChoice);
 
+			// If both players have chosen
 			if (oppChoice!="" && choice !="") {
 				console.log("Before getResult(), choice " + choice + " vs " + "oppChoice " + oppChoice)
+				// If these references aren't passed in, it sets them to empty for some reason
 				getResult(choice, oppChoice);
+				// Reset all to empty so that choices don't default to former when opponent choses before you
 				choice = "";
 				database.ref("/playerChoices/" + choiceRef).set({
 					choice: ""
 				});
 				oppChoice = "";
+				// Wait to see both choices before resetting
 				setTimeout(function(){
 					$("#instructions").text("Choose a card.");
 		  			$(".holder").css("display", "inline-block");
@@ -176,7 +180,9 @@ function getResult(choice, oppChoice) {
   	});
 };
 
-
+/***************************************
+ANIMATION
+***************************************/
 
 $(document).on({
 	mouseenter : function() {
