@@ -113,16 +113,15 @@ $(".card").on("click", function(){
 	// If the user is the first or second player
 	if (userID === player) {
 		// Go to database and set player's choice to player's local selection
-		database.ref("/playerChoices").once("value", function(snap){
-			console.log(snap.val())
+		
+		// LOSING THIS DATABASE CALL FIXED THE ISSUE WHERE THE CARD GETS STUCK IF PLAYER 2 PICKS FIRST
+		// database.ref("/playerChoices").once("value", function(snap){
 			database.ref("/playerChoices/"+ choiceRef).set({choice});
+		// });
 
-		});
 		// Listen for opponent to choose
 		// What if opponent has already chosen?
-
 		database.ref("/playerChoices/" + oppChoiceRef).on("value", function(snap){
-
 			oppChoice = snap.val().choice;
 			$("#holder-"+ oppChoice).css("display", "inline-block");
 			console.log("Your choice is " + choice);
@@ -144,19 +143,22 @@ $(".card").on("click", function(){
 					$("#instructions").text("Choose a card.");
 		  			$(".holder").css("display", "inline-block");
 				}, 1000*5);
+				return;
 			}
-			//This should never be true...
+			// Ideally, I'd prefer this to never be true... but sometimes it is. Not really a big deal.
 			else if (choice === "") {
-				$("#instructions").text("Want to avoid this ever being true")
+				$("#instructions").text("Want to avoid this being true")
 			}
 			else {
 				$("#instructions").text("Wait for other player's choice");
 			}
 		});
+	return;
 	}
 	else {
 		$("#instructions").text("You are not player one or two. Please wait to play.")
 	};
+	
 	
 
 });
