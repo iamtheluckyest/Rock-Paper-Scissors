@@ -112,10 +112,7 @@ $(".card").on("click", function(){
 	if (userID === player) {
 		// Go to database and set player's choice to player's local selection
 		
-		// LOSING THIS DATABASE CALL FIXED THE ISSUE WHERE THE CARD GETS STUCK IF PLAYER 2 PICKS FIRST
-		// database.ref("/playerChoices").once("value", function(snap){
-			database.ref("/playerChoices/"+ choiceRef).set({choice});
-		// });
+		database.ref("/playerChoices/"+ choiceRef).set({choice});
 
 		// Listen for opponent to choose
 		// What if opponent has already chosen?
@@ -142,7 +139,7 @@ $(".card").on("click", function(){
 			}
 			// Ideally, I'd prefer this to never be true... but sometimes it is. Not really a big deal.
 			else if (choice === "") {
-				$("#instructions").text("Want to avoid this being true")
+				
 			}
 			else {
 				$("#instructions").text("Wait for other player's choice");
@@ -211,4 +208,9 @@ PREFERRED FUNCTIONALITY
 * Add user counter that tells which user you are
 * Add user counter that tells how many users are online/waiting to play
 * Tell users which card is theirs and which is the opponents when the results happen; animate if possible
+* Fix mobile layout
+* Disable clicks if card is already chosen
+* Win/loss counters
+* Animation glitch on cards
+* Fix async calls.... (Do after learning node?)
 */
