@@ -34,23 +34,24 @@ connectedRef.on("value", function(snap) {
   	con.onDisconnect().remove()
   	//  Get user id for use in assigning a number.
   	userID = con.key;
-  	//console.log(userID);
+  	
+  	// Assign new user's userNumber to the current total number of users (i.e. add to end of queue).
+  	usersRef.once("value", function(snap){
+  		userCount = snap.numChildren();
+  		usersRef.child(userID).set({
+  			userNumber : userCount
+  		});
+  		assignPlayers();
+  	});
+
+
   }
 });
 
-// Assign new user's userNumber to the current total number of users (i.e. add to end of queue).
-usersRef.once("value", function(snap){
-	userCount = snap.numChildren();
-	usersRef.child(userID).set({
-		userNumber : userCount
-	});
-	assignPlayers();
-});
 
 // When browser is closed, rewrite user numbers to reflect change in queue.
 usersRef.on("child_removed", function(removedChildSnap) {
 	if (removedChildSnap.val().userNumber === 1) {
-		console.log(choice)
 		database.ref("/playerChoices/p1Choice").set({
 			choice: choice
 		});
@@ -68,7 +69,6 @@ usersRef.on("child_removed", function(removedChildSnap) {
 	};
 	usersRef.once("value", function(snap) {
 		var newCount = 1;
-		console.log(snap.val());
 		for (var key in snap.val()) {
 	      	database.ref("/users/" + key).set({
 	      		userNumber : newCount
@@ -85,13 +85,11 @@ function assignPlayers(){
 		var data = snap.val();
 		
 		if (data[userID].userNumber === 1) {
-			console.log("you are user 1");
 			player = userID;
 			choiceRef = "p1Choice";
 			oppChoiceRef = "p2Choice";
 		}
 		else if (data[userID].userNumber === 2) {
-			console.log("you are user 2");
 			player = userID;
 			choiceRef = "p2Choice";
 			oppChoiceRef = "p1Choice";
@@ -124,12 +122,9 @@ $(".card").on("click", function(){
 		database.ref("/playerChoices/" + oppChoiceRef).on("value", function(snap){
 			oppChoice = snap.val().choice;
 			$("#holder-"+ oppChoice).css("display", "inline-block");
-			console.log("Your choice is " + choice);
-			console.log("oppChoice is " + oppChoice);
 
 			// If both players have chosen
 			if (oppChoice!="" && choice !="") {
-				console.log("Before getResult(), choice " + choice + " vs " + "oppChoice " + oppChoice)
 				// If these references aren't passed in, it sets them to empty for some reason
 				getResult(choice, oppChoice);
 				// Reset all to empty so that choices don't default to former when opponent choses before you
@@ -166,18 +161,14 @@ $(".card").on("click", function(){
 
 function getResult(choice, oppChoice) {
 	database.ref("/playerChoices").once("value", function(snap){
-		console.log("In getResult(), choice " + choice + " vs " + "oppChoice " + oppChoice)
 		if (choice === oppChoice) {
 			$("#instructions").text("It's a tie!");
-			console.log("its a tie")
 	  	} else if ( (choice ==='rock' && oppChoice === 'scissors') 
 	  		|| (choice ==='paper' && oppChoice === 'rock') 
 	  		|| (choice ==='scissors' && oppChoice === 'paper') ) {
 	  		$("#instructions").text("You win!");
-	  		console.log(choiceRef + " is the winner")
 	  	} else {
 	  		$("#instructions").text("You lose!");
-	  		console.log(choiceRef + " is the loser")
 	  	};
   	});
 };
@@ -211,3 +202,13 @@ $(document).on({
 		$("html, body").css("cursor", "default");
 	}
 }, ".card");
+
+
+/************************
+PREFERRED FUNCTIONALITY
+**************************/
+/*
+* Add user counter that tells which user you are
+* Add user counter that tells how many users are online/waiting to play
+* Tell users which card is theirs and which is the opponents when the results happen; animate if possible
+*/
