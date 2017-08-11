@@ -40,55 +40,54 @@ connectedRef.on("value", function(snap) {
   		usersRef.child(userID).set({
   			userNumber : userCount
   		});
-  		console.log("userCount is: " + userCount);
   		assignPlayers(userCount);
   	});
   }
 });
 
 // When browser is closed, rewrite user numbers to reflect change in queue.
-// NOT SURE HOW TO KEEP THIS EXPOSED SO THAT IT CAN RECONFIGURE THE PLAYERS AT ANY TIME WHILE ALSO PASSING THE RESULT TO THE CURRENT GAME IF NECESSARY
-usersRef.on("child_removed", function(removedChildSnap) {
-	if (removedChildSnap.val().userNumber === 1) {
-		database.ref("/playerChoices/p1Choice").set({
-			choice: choice
-		});
-		database.ref("/playerChoices/p2Choice").set({
-			choice: ""
-		});
-		oppChoice = "";
+  // NOT SURE HOW TO KEEP THIS EXPOSED SO THAT IT CAN RECONFIGURE THE PLAYERS AT ANY TIME WHILE ALSO PASSING THE RESULT TO THE CURRENT GAME IF NECESSARY
+  usersRef.on("child_removed", function(removedChildSnap) {
+  	if (removedChildSnap.val().userNumber === 1) {
+  		database.ref("/playerChoices/p1Choice").set({
+  			choice: choice
+  		});
+  		database.ref("/playerChoices/p2Choice").set({
+  			choice: ""
+  		});
+  		oppChoice = "";
 
-	}
-	else if (removedChildSnap.val().userNumber === 2) {
-		database.ref("/playerChoices/p2Choice").set({
-			choice: ""
-		});
-		oppChoice = "";
-	};
-	usersRef.once("value", function(snap) {
-		var newCount = 1;
-		for (var key in snap.val()) {
-	      	database.ref("/users/" + key).set({
-	      		userNumber : newCount
-	      	});
-	      	newCount++;
-		};
-		console.log("newCount is: " + newCount);
-		assignPlayers(newCount-1);
-    });
-   
-});
+  	}
+  	else if (removedChildSnap.val().userNumber === 2) {
+  		database.ref("/playerChoices/p2Choice").set({
+  			choice: ""
+  		});
+  		oppChoice = "";
+  	};
+  	usersRef.once("value", function(snap) {
+  		var newCount = 1;
+  		for (var key in snap.val()) {
+  	      	database.ref("/users/" + key).set({
+  	      		userNumber : newCount
+  	      	});
+  	      	newCount++;
+  		};
+  		
+      });
+  		assignPlayers(newCount-1);
+     
+  });
+
 
 function assignPlayers(totalUsers){
 
 
 	usersRef.once("value", function(snap){
-		// SHOULD UPDATE EVERY TIME A USER SIGNS ON, WITHOUT REFRESHING THE PAGE
-		console.log(totalUsers)
+		var data = snap.val();
 		if (totalUsers === 1) {
 			totalUsers = 0;
 			$("#instructions").text("Please wait for a second user to join the game.");
-			$("#total-users").text("You are the only user online");
+			$("#total-users").text("You are the only user online.");
 		} else if (totalUsers === 2){
 			totalUsers = 0;
 			$("#instructions").text("Choose a card!");
@@ -99,8 +98,7 @@ function assignPlayers(totalUsers){
 			totalUsers -= 2;
 			$("#total-users").text("There are " + totalUsers + " users waiting to play.");
 		}
-
-		var data = snap.val();
+		$("#user-counter").text(data[userID].userNumber);
 		
 		if (data[userID].userNumber === 1) {
 			console.log("you are user 1");
@@ -159,17 +157,15 @@ $(".card").on("click", function(){
 					$("#instructions").text("Choose a card.");
 		  			$(".holder").css("display", "inline-block");
 				}, 1000*5);
-				return;
 			}
 			// Ideally, I'd prefer this to never be true... but sometimes it is. Not really a big deal.
 			else if (choice === "") {
-				$("#instructions").text("Want to avoid this being true")
+				
 			}
 			else {
 				$("#instructions").text("Wait for other player's choice");
 			}
 		});
-	return;
 	}
 	else {
 		$("#instructions").text("You are not player one or two. Please wait to play.")
