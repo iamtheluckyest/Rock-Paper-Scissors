@@ -34,23 +34,22 @@ connectedRef.on("value", function(snap) {
   	con.onDisconnect().remove()
   	//  Get user id for use in assigning a number.
   	userID = con.key;
-  	//console.log(userID);
+  	// Assign new user's userNumber to the current total number of users (i.e. add to end of queue).
+  	usersRef.on("value", function(snap){
+  		userCount = snap.numChildren();
+  		usersRef.child(userID).set({
+  			userNumber : userCount
+  		});
+  		console.log("userCount is: " + userCount);
+  		assignPlayers(userCount);
+  	});
   }
 });
 
-// Assign new user's userNumber to the current total number of users (i.e. add to end of queue).
-usersRef.once("value", function(snap){
-	userCount = snap.numChildren();
-	usersRef.child(userID).set({
-		userNumber : userCount
-	});
-	assignPlayers();
-});
-
 // When browser is closed, rewrite user numbers to reflect change in queue.
+// NOT SURE HOW TO KEEP THIS EXPOSED SO THAT IT CAN RECONFIGURE THE PLAYERS AT ANY TIME WHILE ALSO PASSING THE RESULT TO THE CURRENT GAME IF NECESSARY
 usersRef.on("child_removed", function(removedChildSnap) {
 	if (removedChildSnap.val().userNumber === 1) {
-		console.log(choice)
 		database.ref("/playerChoices/p1Choice").set({
 			choice: choice
 		});
@@ -68,20 +67,39 @@ usersRef.on("child_removed", function(removedChildSnap) {
 	};
 	usersRef.once("value", function(snap) {
 		var newCount = 1;
-		console.log(snap.val());
 		for (var key in snap.val()) {
 	      	database.ref("/users/" + key).set({
 	      		userNumber : newCount
 	      	});
-	      	newCount++;			
+	      	newCount++;
 		};
+		console.log("newCount is: " + newCount);
+		assignPlayers(newCount-1);
     });
-    assignPlayers();
+   
 });
 
-function assignPlayers(){
+function assignPlayers(totalUsers){
+
 
 	usersRef.once("value", function(snap){
+		// SHOULD UPDATE EVERY TIME A USER SIGNS ON, WITHOUT REFRESHING THE PAGE
+		console.log(totalUsers)
+		if (totalUsers === 1) {
+			totalUsers = 0;
+			$("#instructions").text("Please wait for a second user to join the game.");
+			$("#total-users").text("You are the only user online");
+		} else if (totalUsers === 2){
+			totalUsers = 0;
+			$("#instructions").text("Choose a card!");
+			$("#total-users").text("There are 2 users online.");
+		} else if (totalUsers === 3) {
+			$("#total-users").text("There is 1 user waiting to play.");
+		} else {
+			totalUsers -= 2;
+			$("#total-users").text("There are " + totalUsers + " users waiting to play.");
+		}
+
 		var data = snap.val();
 		
 		if (data[userID].userNumber === 1) {
@@ -96,6 +114,8 @@ function assignPlayers(){
 			choiceRef = "p2Choice";
 			oppChoiceRef = "p1Choice";
 		};
+
+
 	});
 };
 
@@ -114,13 +134,9 @@ $(".card").on("click", function(){
 	if (userID === player) {
 		// Go to database and set player's choice to player's local selection
 		
-		// LOSING THIS DATABASE CALL FIXED THE ISSUE WHERE THE CARD GETS STUCK IF PLAYER 2 PICKS FIRST
-		// database.ref("/playerChoices").once("value", function(snap){
-			database.ref("/playerChoices/"+ choiceRef).set({choice});
-		// });
-
+		database.ref("/playerChoices/"+ choiceRef).set({choice});
+		
 		// Listen for opponent to choose
-		// What if opponent has already chosen?
 		database.ref("/playerChoices/" + oppChoiceRef).on("value", function(snap){
 			oppChoice = snap.val().choice;
 			$("#holder-"+ oppChoice).css("display", "inline-block");
@@ -158,9 +174,6 @@ $(".card").on("click", function(){
 	else {
 		$("#instructions").text("You are not player one or two. Please wait to play.")
 	};
-	
-	
-
 });
 
 
@@ -185,7 +198,6 @@ function getResult(choice, oppChoice) {
 /***************************************
 ANIMATION
 ***************************************/
-
 $(document).on({
 	mouseenter : function() {
 		$(this).animate({

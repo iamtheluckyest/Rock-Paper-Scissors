@@ -13,6 +13,15 @@ body {
 	text-align:center;
 }
 
+.user-counter-box {
+	position:absolute;
+	width:200px;
+	font-weight: bold;
+	font-size: 1.2em;
+	top:10px;
+	left:10px;
+}
+
 h1 {
 	text-align: center;
 }
