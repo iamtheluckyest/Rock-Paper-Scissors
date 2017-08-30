@@ -173,9 +173,6 @@ $(".card").on("click", function(){
 			}
 		});
 	};
-	
-	
-
 });
 
 
@@ -193,3 +190,13 @@ function getResult(choice, oppChoice) {
   	});
 };
 
+/************************
+PREFERRED FUNCTIONALITY
+**************************/
+/*
+* Tell users which card is theirs and which is the opponents when the results happen; animate if possible
+* Fix mobile layout
+* Disable clicks if card is already chosen
+* Win/loss counters
+* Fix async calls.... (Do after learning node?)
+*/
