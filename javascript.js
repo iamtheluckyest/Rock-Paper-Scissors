@@ -31,68 +31,100 @@ SET UP PLAYERS
 connectedRef.on("value", function(snap) {
   if (snap.val()) {
   	var con = usersRef.push(true);
-  	con.onDisconnect().remove()
+  	con.onDisconnect().remove();
+
   	//  Get user id for use in assigning a number.
   	userID = con.key;
-  	
+
+  	// ARE THESE RACE CONDITIONS?
   	// Assign new user's userNumber to the current total number of users (i.e. add to end of queue).
   	usersRef.once("value", function(snap){
   		userCount = snap.numChildren();
   		usersRef.child(userID).set({
   			userNumber : userCount
   		});
-  		assignPlayers();
+  	assignPlayers(userCount);
   	});
 
+  	usersRef.on("child_added", function(snapshot) {
+  		usersRef.once("value", function(snap){
+  			userCount = snap.numChildren();
+  		});
+  		assignPlayers(userCount);
+  	});
 
-  }
+  	// When browser is closed, rewrite user numbers to reflect change in queue.
+  	usersRef.on("child_removed", function(removedChildSnap) {
+  		if (removedChildSnap.val().userNumber === 1) {
+  			database.ref("/playerChoices/p1Choice").set({
+  				choice: choice
+  			});
+  			database.ref("/playerChoices/p2Choice").set({
+  				choice: ""
+  			});
+  			oppChoice = "";
+
+  		} else if (removedChildSnap.val().userNumber === 2) {
+  			database.ref("/playerChoices/p2Choice").set({
+  				choice: ""
+  			});
+  			oppChoice = "";
+  		};
+
+  		usersRef.on("value", function(snap) {
+  			var newCount = 1;
+  			for (var key in snap.val()) {
+  		      	database.ref("/users/" + key).set({
+  		      		userNumber : newCount
+  		      	});
+  		      	newCount++;
+  			};
+  			assignPlayers(newCount-1);  
+  	  });
+
+  	});
+
+  };
 });
 
 
-// When browser is closed, rewrite user numbers to reflect change in queue.
-usersRef.on("child_removed", function(removedChildSnap) {
-	if (removedChildSnap.val().userNumber === 1) {
-		database.ref("/playerChoices/p1Choice").set({
-			choice: choice
-		});
-		database.ref("/playerChoices/p2Choice").set({
-			choice: ""
-		});
-		oppChoice = "";
-
-	}
-	else if (removedChildSnap.val().userNumber === 2) {
-		database.ref("/playerChoices/p2Choice").set({
-			choice: ""
-		});
-		oppChoice = "";
-	};
-	usersRef.once("value", function(snap) {
-		var newCount = 1;
-		for (var key in snap.val()) {
-	      	database.ref("/users/" + key).set({
-	      		userNumber : newCount
-	      	});
-	      	newCount++;			
-		};
-    });
-    assignPlayers();
-});
-
-function assignPlayers(){
+function assignPlayers(totalUsers){
 
 	usersRef.once("value", function(snap){
 		var data = snap.val();
+		switch (totalUsers) {
+			case 1:
+				$("#instructions").text("Please wait for a second user to join the game.");
+				$("#total-users").text("You are the only user online.");
+				break;
+			case 2:
+				$("#instructions").text("Choose a card!");
+				$("#total-users").text("There are 2 users online.");
+				break;
+			case 3:
+				$("#total-users").text("There is 1 user waiting to play.");
+				break;
+			default : 
+				totalUsers -= 2;
+				$("#total-users").text("There are " + totalUsers + " users waiting to play.");
+		};
+
+		$("#user-counter").text(data[userID].userNumber);
 		
 		if (data[userID].userNumber === 1) {
+			$("#barrier").css("display", "none");
 			player = userID;
 			choiceRef = "p1Choice";
 			oppChoiceRef = "p2Choice";
 		}
 		else if (data[userID].userNumber === 2) {
+			$("#barrier").css("display", "none");
 			player = userID;
 			choiceRef = "p2Choice";
 			oppChoiceRef = "p1Choice";
+		} else {
+			$("#barrier").css("display", "block");
+			$("#instructions").text("You are not player one or two. Please wait to play.")
 		};
 	});
 };
@@ -111,7 +143,6 @@ $(".card").on("click", function(){
 	// If the user is the first or second player
 	if (userID === player) {
 		// Go to database and set player's choice to player's local selection
-		
 		database.ref("/playerChoices/"+ choiceRef).set({choice});
 
 		// Listen for opponent to choose
@@ -135,20 +166,12 @@ $(".card").on("click", function(){
 					$("#instructions").text("Choose a card.");
 		  			$(".holder").css("display", "inline-block");
 				}, 1000*5);
-				return;
-			}
-			// Ideally, I'd prefer this to never be true... but sometimes it is. Not really a big deal.
-			else if (choice === "") {
-				
-			}
-			else {
+			} else if (choice === "") {
+
+			} else {
 				$("#instructions").text("Wait for other player's choice");
 			}
 		});
-	return;
-	}
-	else {
-		$("#instructions").text("You are not player one or two. Please wait to play.")
 	};
 	
 	
@@ -170,47 +193,3 @@ function getResult(choice, oppChoice) {
   	});
 };
 
-/***************************************
-ANIMATION
-***************************************/
-
-$(document).on({
-	mouseenter : function() {
-		$(this).animate({
-			top: "-=3px",
-			left: "-=3px",
-			height: 306,
-			width: 206
-		},  {duration: 200,
-			queue : false});
-		$("html, body").css("cursor", "pointer");
-	},
-	mouseleave : function(){
-		$(this).animate({
-			top: "+0px",
-			left: "+0px",
-			height: 300,
-			width: 200
-		},  {duration: 200,
-			queue : false});
-		$("html, body").css("cursor", "default");
-	},
-	click : function(){
-		$("html, body").css("cursor", "default");
-	}
-}, ".card");
-
-
-/************************
-PREFERRED FUNCTIONALITY
-**************************/
-/*
-* Add user counter that tells which user you are
-* Add user counter that tells how many users are online/waiting to play
-* Tell users which card is theirs and which is the opponents when the results happen; animate if possible
-* Fix mobile layout
-* Disable clicks if card is already chosen
-* Win/loss counters
-* Animation glitch on cards
-* Fix async calls.... (Do after learning node?)
-*/
