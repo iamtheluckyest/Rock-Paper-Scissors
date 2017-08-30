@@ -8,9 +8,19 @@ body {
 	color: #fff;
 }
 
+#barrier {
+	width:100%;
+	height:100%;
+	display:none;
+	position:absolute;
+	z-index: 5;
+
+}
+
 .row {
 	width:100%;
 	text-align:center;
+	position:relative;
 }
 
 .user-counter-box {
@@ -43,12 +53,19 @@ h1 {
 	height:300px;
 	position:absolute;
 	text-align: center;
+	transition: all 0.2s ease-in-out;
+    transform: scale( 1 );
+}
+
+.card:hover {
+    transform: scale( 1.075 );
 }
 
 .card > img {
 	margin-top:50px;
 	width:150px;
 }
+
 
 #paper {
 	background-color: #b51609;
